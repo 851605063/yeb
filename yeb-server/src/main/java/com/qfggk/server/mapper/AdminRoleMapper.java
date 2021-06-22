@@ -13,4 +13,5 @@ import com.qfggk.server.pojo.AdminRole;
  */
 public interface AdminRoleMapper extends BaseMapper<AdminRole> {
 
+    Integer addRole(Integer adminId, Integer[] rids);
 }

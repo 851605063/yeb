@@ -1,5 +1,8 @@
 package com.qfggk.server.config.security;
 
+import com.qfggk.server.config.security.component.JwtAuthencationTokenFilter;
+import com.qfggk.server.config.security.component.RestAuthorizedEntryPoint;
+import com.qfggk.server.config.security.component.RestfulAccessDeniedHandler;
 import com.qfggk.server.pojo.Admin;
 import com.qfggk.server.service.IAdminService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +14,7 @@ import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -22,11 +26,11 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 public class SecurityConfig  extends WebSecurityConfigurerAdapter {
 
-    @Autowired
+    @Autowired(required = false)
     private IAdminService adminService;
-    @Autowired
+    @Autowired(required = false)
     private RestAuthorizedEntryPoint restAuthorizedEntryPoint;
-    @Autowired
+    @Autowired(required = false)
     private RestfulAccessDeniedHandler restfulAccessDeniedHandler;
 
 
@@ -94,10 +98,12 @@ public class SecurityConfig  extends WebSecurityConfigurerAdapter {
     @Bean
     protected UserDetailsService userDetailsService() {
        return username ->{
-           Admin admin =adminService.getAdminByUsername(username);
-           if(admin!=null)
-               return  admin;
-           return  null;
+           Admin admin =adminService.getAdminByUserName(username);
+           if(admin!=null) {
+               admin.setRoles(adminService.getRolesByAdminId(admin.getId()));
+               return admin;
+           }
+           throw new UsernameNotFoundException("用户名或密码不正确");
        };
     }
 
